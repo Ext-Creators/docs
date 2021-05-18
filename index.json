@@ -3,7 +3,8 @@
     "latest": "latest",
     "stable": "stable",
     "tags": [
-      "v2.0.0f6"
+      "v2.0.0f6",
+      "v2.0.0f7"
     ]
   }
 }

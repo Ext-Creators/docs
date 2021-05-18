@@ -1,6 +1,6 @@
 {
   "ipc": {
-    "latest": "stable",
+    "latest": "latest",
     "stable": "stable",
     "tags": []
   }

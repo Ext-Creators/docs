@@ -1,0 +1,384 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>1. Server Setup &mdash; discord-ext-ipc 2.1.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="2. Client Connection" href="../client/" />
+    <link rel="prev" title="Welcome to discord-ext-ipc’s documentation!" href="../../" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../" class="icon icon-home"> discord-ext-ipc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Server Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../client/">2. Client Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../errors/">3. IPC Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/">4. Example Usages</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">discord-ext-ipc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">1. </span>Server Setup</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/modules/server.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="server-setup">
+<h1><span class="section-number">1. </span>Server Setup<a class="headerlink" href="#server-setup" title="Permalink to this headline">¶</a></h1>
+<p>The IPC server is what runs on your bot’s process.
+It will run within the same loop as your bot without interfering with your bot’s process.</p>
+<p>The server handles multiple things:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Routes</dt><dd><ul>
+<li><p>These routes / endpoints are available to the client and are what your server returns upon requests being made to it.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Authentication</dt><dd><ul>
+<li><p>The IPC client and server use a secret key authentication system. If your server secret key and the request’s authentication header don’t match, the request will not be carried out.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Multicasting</dt><dd><ul>
+<li><p>You do not have to specify a port on your client process, only an IP (defaults to localhost). If you do not specify an IP then the client will connect to another server running on port 20000. This will return the port of your main server for the client to connect to.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>So, how does it work?
+The server is simply just a websocket server.
+Requests are sent in a JSON payload to and from the server.
+For example, a client request could be {‘endpoint’: ‘get_guild_count’, ‘headers’: {…}}.
+This JSON is processed upon a request being made, and checks for a registered route matching the name of the endpoint supplied.
+It then calls the method linked to said route and returns the payload to the client.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.route">
+<span class="sig-prename descclassname"><span class="pre">discord.ext.ipc.server.</span></span><span class="sig-name descname"><span class="pre">route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#discord.ext.ipc.server.route" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to register a coroutine as an endpoint when you don’t have
+access to an instance of <a class="reference internal" href="#discord.ext.ipc.server.Server" title="discord.ext.ipc.server.Server"><code class="xref py py-class docutils literal notranslate"><span class="pre">Server</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The endpoint name. If not provided the method name will be
+used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">discord.ext.ipc.server.</span></span><span class="sig-name descname"><span class="pre">Server</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8765</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secret_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_multicast</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multicast_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#discord.ext.ipc.server.Server" title="Permalink to this definition">¶</a></dt>
+<dd><p>The IPC server. Usually used on the bot process for receiving
+requests from the client.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.bot">
+<span class="sig-name descname"><span class="pre">bot</span></span><a class="headerlink" href="#discord.ext.ipc.server.Server.bot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Your bot instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Bot" title="(in discord.py v1.7.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bot</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.host">
+<span class="sig-name descname"><span class="pre">host</span></span><a class="headerlink" href="#discord.ext.ipc.server.Server.host" title="Permalink to this definition">¶</a></dt>
+<dd><p>The host to run the IPC Server on. Defaults to localhost.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.port">
+<span class="sig-name descname"><span class="pre">port</span></span><a class="headerlink" href="#discord.ext.ipc.server.Server.port" title="Permalink to this definition">¶</a></dt>
+<dd><p>The port to run the IPC Server on. Defaults to 8765.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.secret_key">
+<span class="sig-name descname"><span class="pre">secret_key</span></span><a class="headerlink" href="#discord.ext.ipc.server.Server.secret_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>A secret key. Used for authentication and should be the same as
+your client’s secret key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.do_multicast">
+<span class="sig-name descname"><span class="pre">do_multicast</span></span><a class="headerlink" href="#discord.ext.ipc.server.Server.do_multicast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn multicasting on/off. Defaults to True</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.multicast_port">
+<span class="sig-name descname"><span class="pre">multicast_port</span></span><a class="headerlink" href="#discord.ext.ipc.server.Server.multicast_port" title="Permalink to this definition">¶</a></dt>
+<dd><p>The port to run the multicasting server on. Defaults to 20000</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.handle_accept">
+<em class="property"><span class="pre">await</span> </em><span class="sig-name descname"><span class="pre">handle_accept</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#discord.ext.ipc.server.Server.handle_accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles websocket requests from the client process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request</strong> (<a class="reference external" href="https://docs.aiohttp.org/en/stable/web_reference.html#aiohttp.web.Request" title="(in aiohttp v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>) – The request made by the client, parsed by aiohttp.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.handle_multicast">
+<em class="property"><span class="pre">await</span> </em><span class="sig-name descname"><span class="pre">handle_multicast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#discord.ext.ipc.server.Server.handle_multicast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles multicasting websocket requests from the client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request</strong> (<a class="reference external" href="https://docs.aiohttp.org/en/stable/web_reference.html#aiohttp.web.Request" title="(in aiohttp v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></a>) – The request made by the client, parsed by aiohttp.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.route">
+<span class="sig-name descname"><span class="pre">route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#discord.ext.ipc.server.Server.route" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to register a coroutine as an endpoint when you have
+access to an instance of <a class="reference internal" href="#discord.ext.ipc.server.Server" title="discord.ext.ipc.server.Server"><code class="xref py py-class docutils literal notranslate"><span class="pre">Server</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The endpoint name. If not provided the method name will be used.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#discord.ext.ipc.server.Server.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the IPC server.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="discord.ext.ipc.server.Server.update_endpoints">
+<span class="sig-name descname"><span class="pre">update_endpoints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#discord.ext.ipc.server.Server.update_endpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called internally to update the server’s endpoints for cog routes.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../client/" class="btn btn-neutral float-right" title="2. Client Connection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../../" class="btn btn-neutral float-left" title="Welcome to discord-ext-ipc’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020-present, Ext-Creators.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
